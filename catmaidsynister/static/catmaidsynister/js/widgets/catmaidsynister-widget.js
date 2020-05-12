@@ -10,7 +10,8 @@
     this.idPrefix = `catmaidsynister-widget${this.widgetID}-`;
   };
 
-  $.extend(CatmaidsynisterWidget.prototype, new InstanceRegistry());
+  CatmaidsynisterWidget.prototype = new InstanceRegistry();
+  CatmaidsynisterWidget.prototype.constructor = CatmaidsynisterWidget;
 
   CatmaidsynisterWidget.prototype.getName = function() {
     return 'Catmaidsynister Widget ' + this.widgetID;
@@ -21,7 +22,20 @@
       helpText: 'Catmaidsynister Widget: ',
       controlsID: this.idPrefix + 'controls',
       createControls: function(controls) {
-        controls.appendChild(document.createTextNode('Controls go here'));
+        CATMAID.DOM.appendElement(controls, {
+          'type': 'button',
+          'label': 'Fetch neurotransmitter',
+          'title': 'Ask the back-end for neurotransmitter information for the current location',
+          'onclick': e => {
+            let activeNodeType = SkeletonAnnotations.getActiveNodeType();
+            if (activeNodeType !== SkeletonAnnotations.TYPE_CONNECTORNODE) {
+              CATMAID.warn('Please select a connector node!');
+              return;
+            }
+            this.fetchNeurotransmitterForConnector(SkeletonAnnotations.getActiveNodeId())
+              .catch(CATMAID.handleError);
+          },
+        });
       },
       contentID: this.idPrefix + 'content',
       createContent: function(container) {
@@ -35,9 +49,25 @@
     this.unregisterInstance();
   };
 
+  /**
+   * Ask the back-end to import neurotransmitter information for the specified
+   * connector.
+   *
+   * @param {Integer} connectorId The connector to look-up neurotransmitters for
+   *
+   * @returns a Promise that resolves when neurotransmitter information has been
+   *          found.
+   */
+  CatmaidsynisterWidget.prototype.fetchNeurotransmitterForConnector = function(connectorId) {
+    return CATMAID.fetch(`ext/catmaidsynister/${project.id}/connectors/${connectorId}/fetch-neurotransmitters`)
+      .then(result => {
+        CATMAID.msg('Success', `Found neurotransmitter information for connector #${connectorId}`);
+      });
+  };
+
   CATMAID.registerWidget({
-    name: 'CATMAID-Synister Widget',
-    description: 'Widget associated with the catmaidsynister app',
+    name: 'Synister-Widget',
+    description: 'Determine neurotransmitter information for synapses',
     key: 'catmaidsynister-widget',
     creator: CatmaidsynisterWidget
   });
