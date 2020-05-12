@@ -59,7 +59,10 @@
    *          found.
    */
   CatmaidsynisterWidget.prototype.fetchNeurotransmitterForConnector = function(connectorId) {
-    return CATMAID.fetch(`ext/catmaidsynister/${project.id}/connectors/${connectorId}/fetch-neurotransmitters`)
+    return CATMAID.fetch({
+        url: `ext/catmaidsynister/${project.id}/connectors/${connectorId}/fetch-neurotransmitter`,
+        method: 'POST',
+      })
       .then(result => {
         CATMAID.msg('Success', `Found neurotransmitter information for connector #${connectorId}`);
       });
