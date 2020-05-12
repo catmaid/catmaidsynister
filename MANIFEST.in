@@ -1,0 +1,3 @@
+include README.md
+recursive-include catmaidsynister/static *
+recursive-include catmaidsynister/fixtures *
